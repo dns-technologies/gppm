@@ -1,0 +1,9 @@
+*.idea
+.vscode
+.mypy_cache
+/source-secrets.yaml
+/.werf_secret_key
+/.env
+/.env.prod
+/.helm/charts
+

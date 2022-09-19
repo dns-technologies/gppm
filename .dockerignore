@@ -1,0 +1,6 @@
+**/node_modules
+**/__pycache__
+.werf_secret_key
+.env
+.env.prod
+.git

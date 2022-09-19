@@ -1,0 +1,4 @@
+uvicorn[standard]==0.15.0
+gunicorn==20.1.0
+fastapi==0.68.2
+python-ldap==3.4.2

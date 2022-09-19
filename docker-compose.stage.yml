@@ -1,0 +1,23 @@
+version: "3.4"
+
+services:
+
+  stage-postgres:
+    image: postgres:9.6
+    ports:
+      - 6542:5432
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: tester
+      POSTGRES_PASSWORD: pivotal
+
+  stage-greenplum:
+    image: datagrip/greenplum:6.8
+    ports:
+      - 6543:5432
+    # default for greenplum image
+    # only for notification
+    environment:
+      GP_DB: testdb
+      GP_USER: tester
+      GP_PASSWORD: pivotal

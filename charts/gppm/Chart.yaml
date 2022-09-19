@@ -1,0 +1,23 @@
+apiVersion: v2
+appVersion: 1.0.0
+description: Chart for deploy GreenPlum Permission Manager to K8s
+keywords:
+- greenplum
+- postgres
+- permissions
+kubeVersion: '>=1.17.0-0'
+maintainers:
+- name: Ostap Konstantinov
+  email: konstantinov.ov@dns-shop.ru
+name: gppm
+version: 0.1.0
+dependencies:
+- name: backend
+  version: 0.1.0
+  repository: "file://backend" 
+- name: frontend
+  version: 0.1.0
+  repository: "file://frontend"
+- name: db
+  version: 0.1.0
+  repository: "file://db"

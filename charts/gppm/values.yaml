@@ -1,0 +1,81 @@
+fullnameOverride: gpmanager
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: <your domain>
+      frontend:
+        - path: /
+      backend:
+        - path: /api
+
+db:
+  fullnameOverride: postgres-db
+  secret:
+    name: db-secrets
+  env:
+    secret:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changethis
+    normal:
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: app
+      PGDATA: /var/lib/postgresql/data/pgdata
+  image:
+    repository: postgres
+    tag: 12
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    storage: 1Gi
+    storageClassName: ""
+  service:
+    type: ClusterIP
+    port: 5432
+
+frontend:
+  fullnameOverride: vuejs-frontend
+  imagePullSecrets: []
+  image:
+    repository: <gppm-frontend in your container registry>
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 80
+
+backend:
+  fullnameOverride: fastapi-backend
+  imagePullSecrets: []
+  secret:
+    name: backend-secrets
+  env:
+    secret:
+      SECRET_KEY: HF2IxPeglDZdEVp4702u4mxOpoNcInXnZj80d1Ab
+      ENCODING_KEY: SCW2TcT1ko4RaTEXFDXmSsGPIRey0kvNvJz8v0zO73k=
+      FIRST_SUPERUSER: admin@gppm.com
+      FIRST_SUPERUSER_PASSWORD: admin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changethis
+    normal:
+      AUTH_PROVIDER: local
+      AUTH_OPEN_REGISTRATION: False
+      AUTH_REFRESH_PASSWORD: False
+      LOGGING_DEBUG: False
+      INSTALL_DBLINK: True
+      GRANT_WITH_ADMIN_OPTION: False
+      DEEP_REVOKE: True
+      POSTGRES_SERVER: postgres-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: app
+      BACKEND_CORS_ORIGINS: >-
+        [
+          "http://<your domain>",
+          "https://<your domain>"
+        ]
+  image:
+    repository: <gppm-backend in your container registry>
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 80

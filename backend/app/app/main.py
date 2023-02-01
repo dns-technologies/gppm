@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from cryptography.fernet import InvalidToken
+from functools import wraps
 from loguru import logger
 import sys
 
@@ -34,6 +35,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 
 def json_response(func):
+    @wraps(func)
     async def with_logging(*args, **kwargs):
         result = await func(*args, **kwargs)
         if settings.LOGGING_DEBUG:

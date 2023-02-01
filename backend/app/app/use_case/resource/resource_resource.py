@@ -63,14 +63,14 @@ _gp_members_of_resource_group_stmt = (
 )
 
 _gp_resource_group_available_limits = """
-    select
-        1 as cpu_rate_limit_min,
-        100 - sum(cpu_rate_limit::integer) as cpu_rate_limit_max,
-        0 as memory_limit_min,
-        100 - sum(memory_limit::integer) as memory_limit_max,
-        0 as concurrency_min,
-        current_setting('max_connections')::integer as concurrency_max
-    from gp_toolkit.gp_resgroup_config;
+    SELECT
+        1 AS cpu_rate_limit_min,
+        100 - sum(cpu_rate_limit::integer) AS cpu_rate_limit_max,
+        0 AS memory_limit_min,
+        100 - sum(memory_limit::integer) AS memory_limit_max,
+        0 AS concurrency_min,
+        current_setting('max_connections')::integer AS concurrency_max
+    FROM gp_toolkit.gp_resgroup_config;
 """
 
 
@@ -220,6 +220,30 @@ def _remove_all_members_from_resource_group(conn: GreenPlumSession, rsgname: str
     )
 
 
+def _terminate_all_queries_with_resource_group(conn: GreenPlumSession, rsgname: str):
+    # For fix RG with name: unknown
+    sql_command = """
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+            AND rsgid IN (
+                SELECT
+                    groupid
+                FROM
+                    gp_toolkit.gp_resgroup_config
+                WHERE
+                    groupname = :rsgname
+            )
+    """
+
+    conn.execute(
+        sql_command,
+        params={
+            "rsgname": rsgname,
+        },
+    )
+
+
 def _delete_resource_group(conn: GreenPlumSession, rsgname: str):
     sql_command = f"""
         DROP RESOURCE GROUP "{rsgname}"
@@ -229,8 +253,7 @@ def _delete_resource_group(conn: GreenPlumSession, rsgname: str):
 
 
 def _get_all_members_of_resource_group(conn: GreenPlumSession, rsname: str) -> List[str]:
-    stmt = _gp_members_of_resource_group_stmt.where(
-        gp_resgroup_config.c.groupname == rsname)
+    stmt = _gp_members_of_resource_group_stmt.where(gp_resgroup_config.c.groupname == rsname)
     rows = conn.execute(stmt)
 
     members = []
@@ -261,6 +284,7 @@ def drop_resource_group(conn: GreenPlumConnection, rsname: str):
     conn.execution_options(isolation_level="AUTOCOMMIT")
     with Session(conn) as session:
         _remove_all_members_from_resource_group(session, rsname)
+        _terminate_all_queries_with_resource_group(session, rsname)
         _delete_resource_group(session, rsname)
 
 

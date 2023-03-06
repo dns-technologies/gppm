@@ -167,8 +167,11 @@ export default class RoleGroups extends Vue {
     },
     physics: {
       solver: "forceAtlas2Based",
+      maxVelocity: 130,
+      minVelocity: 5,
       stabilization: {
-        iterations: 4000,
+        iterations: 6000,
+        updateInterval: 30,
       },
     },
     edges: {

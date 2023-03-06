@@ -96,6 +96,21 @@ def _get_all_acls(conn: GreenPlumSession, payload: GraphPermissionsDTO) -> List[
     return acl().acl
 
 
+def _max_acls_for_role(rolname: str, payload: GraphPermissionsDTO) -> str:
+    # https://www.postgresql.org/docs/current/ddl-priv.html
+    acl = {
+        (True, False, False): "CTc",
+        (True, True, False): "UC",
+        (True, True, True): "arwdDxt",
+    }.get((
+        bool(payload.database),
+        bool(payload.db_schema),
+        bool(payload.table)
+    ))
+
+    return f"{rolname}={acl}/{rolname}"
+
+
 def change_privilege_roles(privilege: PrivilegeDTO, grantor: str, grantee: str) -> str:
     new_priv = PrivilegeDTO(
         grantee=grantee,
@@ -103,6 +118,7 @@ def change_privilege_roles(privilege: PrivilegeDTO, grantor: str, grantee: str) 
         privs=privilege.privs,
         privswgo=privilege.privswgo,
     )
+
     return compile_one_acl_rule(new_priv)
 
 
@@ -125,12 +141,18 @@ def _all_rules_with_public_acl(roles: List[RoleDTO], privilege: PrivilegeDTO) ->
         )
 
 
+def _get_rules_from_all_admins(roles: List[RoleDTO], payload: GraphPermissionsDTO) -> Iterator[str]:
+    for role in roles:
+        if role.rolsuper:
+            yield _max_acls_for_role(role.rolname, payload)
+
+
 def get_all_graph_permissions(conn: GreenPlumSession, payload: GraphPermissionsDTO) -> Iterator[PrivilegeDTO]:
     acls = _get_all_acls(conn, payload)
     roles = get_all_roles(conn)
     reachable = _get_reachable_roles(conn)
 
-    permissions = []
+    permissions = list(_get_rules_from_all_admins(roles, payload))
     role_finder = RoleSearcher(roles)
 
     for acl in acls:

@@ -1,4 +1,4 @@
-FROM node:16.14-slim as builder
+FROM node:16-slim as builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ ENV VUE_APP_DOMAIN=${FRONTEND_DOMAIN}
 
 RUN npm run build
 
-FROM nginx:1.19.8
+FROM nginx:1.19
 
 LABEL maintainer="Ostap Konstantinov <konstantinov.ov@dns-shop.ru>"
 

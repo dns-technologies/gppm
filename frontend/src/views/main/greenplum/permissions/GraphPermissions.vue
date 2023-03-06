@@ -43,6 +43,10 @@
               </v-chip>
             </template>
 
+            <template v-slot:item.isAdmin="{ item }">
+              <v-icon v-if="item.isAdmin">mdi-crown</v-icon>
+            </template>
+
             <template v-slot:item.create="{ item }">
               <v-icon v-if="item.privs.create">mdi-check</v-icon>
               <v-icon v-if="item.privswgo.create">mdi-check-all</v-icon>
@@ -154,7 +158,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { aclStore, permissionStore } from "@/store";
+import { aclStore, permissionStore, roleStore } from "@/store";
 import {
   IAclDatabase,
   IAclSchema,
@@ -204,7 +208,11 @@ export default class ResultPermissions extends Vue {
       }
     }
 
-    return [{ text: "Grantee", value: "grantee", align: "start" }, ...addition_header];
+    return [
+      { text: "Grantee", value: "grantee", align: "start" },
+      { text: "Is Superuser", value: "isAdmin" },
+      ...addition_header,
+    ];
   }
 
   loading: number = 0;
@@ -238,6 +246,7 @@ export default class ResultPermissions extends Vue {
     database: any,
     store: IAclDatabase[],
     payload: IPermission[],
+    admins: string[],
   ): Promise<{
     owner: string;
     shared: boolean | null;
@@ -252,6 +261,7 @@ export default class ResultPermissions extends Vue {
         const all_privs = [...item.privs, ...item.privswgo];
         return {
           grantee: item.grantee || "PUBLIC",
+          isAdmin: admins.includes(item.grantee),
           direct: gratees.includes(item.grantee),
           create: all_privs.includes("CREATE"),
           temporary: all_privs.includes("TEMPORARY"),
@@ -275,6 +285,7 @@ export default class ResultPermissions extends Vue {
     schema: any,
     store: IAclSchema[],
     payload: IPermission[],
+    admins: string[],
   ): Promise<{
     owner: string;
     shared: boolean | null;
@@ -289,6 +300,7 @@ export default class ResultPermissions extends Vue {
         const all_privs = [...item.privs, ...item.privswgo];
         return {
           grantee: item.grantee || "PUBLIC",
+          isAdmin: admins.includes(item.grantee),
           direct: gratees.includes(item.grantee),
           usage: all_privs.includes("USAGE"),
           create: all_privs.includes("CREATE"),
@@ -309,6 +321,7 @@ export default class ResultPermissions extends Vue {
     table: any,
     store: IAclTable[],
     payload: IPermission[],
+    admins: string[],
   ): Promise<{
     owner: string;
     shared: boolean | null;
@@ -323,6 +336,7 @@ export default class ResultPermissions extends Vue {
         const all_privs = [...item.privs, ...item.privswgo];
         return {
           grantee: item.grantee || "PUBLIC",
+          isAdmin: admins.includes(item.grantee),
           direct: gratees.includes(item.grantee),
           select: all_privs.includes("SELECT"),
           insert: all_privs.includes("INSERT"),
@@ -372,6 +386,11 @@ export default class ResultPermissions extends Vue {
       schema: this.selectedSchema,
       table: this.selectedTable,
     });
+  }
+
+  async loadAdmins(): Promise<string[]> {
+    await roleStore.getRoles();
+    return _.chain(roleStore.roles).filter({ rolsuper: true }).map("rolname").value();
   }
 
   async changedDatabase(database: any) {
@@ -464,19 +483,24 @@ export default class ResultPermissions extends Vue {
 
     try {
       if (this.selectedDatabase) {
-        const permissions = await this.loadPermissions();
+        const [permissions, admins] = await Promise.all([
+          this.loadPermissions(),
+          this.loadAdmins(),
+        ]);
         if (this.selectedSchema) {
           if (this.selectedTable) {
             payload = await this.updateRulesTable(
               this.selectedTable,
               this.tableStore,
               permissions,
+              admins,
             );
           } else {
             payload = await this.updateRulesSchema(
               this.selectedSchema,
               this.schemaStore,
               permissions,
+              admins,
             );
           }
         } else {
@@ -484,6 +508,7 @@ export default class ResultPermissions extends Vue {
             this.selectedDatabase,
             this.databaseStore,
             permissions,
+            admins,
           );
         }
       }

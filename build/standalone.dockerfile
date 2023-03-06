@@ -42,7 +42,7 @@ EXPOSE 8080
 ####################
 # FRONTEND BUILDER #
 ####################
-FROM node:16.14-slim as builder
+FROM node:16-slim as builder
 WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install

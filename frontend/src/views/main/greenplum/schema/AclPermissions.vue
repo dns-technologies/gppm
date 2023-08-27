@@ -180,6 +180,17 @@ export default class AclSchemaPermissions extends Vue {
       case "grant_select":
         grant.privileges.select = true;
         break;
+      case "grant_dml":
+        grant.privileges = {
+          select: true,
+          insert: true,
+          update: true,
+          delete: true,
+          truncate: false,
+          references: false,
+          trigger: false,
+        };
+        break;
       case "grant_all":
         grant.privileges = {
           select: true,
@@ -207,6 +218,12 @@ export default class AclSchemaPermissions extends Vue {
         "Grant SELECT privelege to all tables in schema, also sets DEFAULT privileges",
     },
     {
+      name: "grant_dml",
+      title: "Grant DML statements to all tables",
+      subtitle:
+        "Grant SELECT, INSERT, UPDATE and DELETE privelege to all tables in schema, also sets DEFAULT privileges",
+    },
+    {
       name: "grant_all",
       title: "Grant ALL to all tables",
       subtitle:
@@ -216,7 +233,7 @@ export default class AclSchemaPermissions extends Vue {
       name: "revoke_all",
       title: "Revoke ALL from all tables",
       subtitle:
-        "Revoke All of the available privileges from all tables in schema, also sets DEFAULT privileges",
+        "Revoke ALL of the available privileges from all tables in schema, also sets DEFAULT privileges",
     },
   ];
 

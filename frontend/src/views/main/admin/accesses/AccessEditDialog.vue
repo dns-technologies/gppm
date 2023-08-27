@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" persistent max-width="700px">
+  <v-dialog v-model="dialog" persistent max-width="750px">
     <validation-observer ref="observer" v-slot="{ invalid }">
       <form @submit.prevent="save" :class="{ 'no-click': loading }">
         <v-card>

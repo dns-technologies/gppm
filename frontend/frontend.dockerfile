@@ -16,7 +16,7 @@ ENV VUE_APP_DOMAIN=${FRONTEND_DOMAIN}
 
 RUN npm run build
 
-FROM nginx:1.19
+FROM nginx:1.20
 
 LABEL maintainer="Ostap Konstantinov <konstantinov.ov@dns-shop.ru>"
 

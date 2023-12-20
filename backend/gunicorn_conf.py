@@ -47,7 +47,6 @@ graceful_timeout = int(graceful_timeout_str)
 timeout = int(timeout_str)
 keepalive = int(keepalive_str)
 
-
 # For debugging and testing
 log_data = {
     "loglevel": loglevel,

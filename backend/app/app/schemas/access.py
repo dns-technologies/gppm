@@ -51,7 +51,7 @@ class Access(AccessInDBBase):
         final_type = all_types.get(all_fields)
         if final_type is not None:
             return final_type
-            
+
         return "Nothing"
 
 

@@ -3,7 +3,6 @@ from typing import List
 from sqlalchemy import select
 
 from app.db.orm_types import GreenPlumSession
-
 from . import RoleDTO, RoleCreateDTO, RoleUpdateDTO
 from app.use_case.exceptions import NoSuchObject, DoneWithErrors
 from app.read_model import *
@@ -25,7 +24,7 @@ _pg_role_stmt = (
 )
 
 
-def _create_role(conn: GreenPlumSession, dbuser: RoleCreateDTO):
+def _create_role(conn: GreenPlumSession, dbuser: RoleCreateDTO) -> None:
     '''
     CREATE ROLE name [ [ WITH ] option [ ... ] ]
 
@@ -52,7 +51,7 @@ def _create_role(conn: GreenPlumSession, dbuser: RoleCreateDTO):
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT(
-                'CREATE ROLE "%s" WITH %s %s %s %s %s PASSWORD ''%s''', 
+                'CREATE ROLE "%s" WITH %s %s %s %s %s PASSWORD ''%s''',
                 :rolname, :su, :crole, :cdb, :inherit, :login, :passwd
             );
         END $$
@@ -72,7 +71,7 @@ def _create_role(conn: GreenPlumSession, dbuser: RoleCreateDTO):
     )
 
 
-def _rename_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
+def _rename_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO) -> None:
     '''
     ALTER ROLE name RENAME TO new_name
     '''
@@ -83,7 +82,7 @@ def _rename_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT(
-                'ALTER ROLE "%s" RENAME TO "%s"', 
+                'ALTER ROLE "%s" RENAME TO "%s"',
                 :oldname, :newname
             );
         END $$
@@ -98,7 +97,7 @@ def _rename_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
     )
 
 
-def _alter_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
+def _alter_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO) -> None:
     '''
     ALTER ROLE role_specification [ WITH ] option [ ... ]
 
@@ -119,7 +118,7 @@ def _alter_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT(
-                'ALTER ROLE "%s" WITH %s %s %s %s %s %s', 
+                'ALTER ROLE "%s" WITH %s %s %s %s %s %s',
                 :rolname, :su, :crole, :cdb, :inherit, :login, :passwd
             );
         END $$
@@ -139,7 +138,7 @@ def _alter_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
     )
 
 
-def _reassign_all_owned_by_role_v1(conn: GreenPlumSession, dbuser: str):
+def _reassign_all_owned_by_role_v1(conn: GreenPlumSession, dbuser: str) -> None:
     sql_command = """
         DO $$
         DECLARE
@@ -172,7 +171,7 @@ def _reassign_all_owned_by_role_v1(conn: GreenPlumSession, dbuser: str):
     )
 
 
-def _reassign_all_owned_by_role_v2(conn: GreenPlumSession, dbuser: str):
+def _reassign_all_owned_by_role_v2(conn: GreenPlumSession, dbuser: str) -> None:
     sql_command = """
         DO $$
         DECLARE
@@ -205,7 +204,7 @@ def _reassign_all_owned_by_role_v2(conn: GreenPlumSession, dbuser: str):
     )
 
 
-def _delete_role(conn: GreenPlumSession, dbuser: str):
+def _delete_role(conn: GreenPlumSession, dbuser: str) -> None:
     # Перед удалением, передаем право владения служебной роли
     # без этого будет ошибка: "Role cannot be dropped because some objects depend on it"
     # способ удаления https://dba.stackexchange.com/questions/155332/find-objects-linked-to-a-postgresql-role
@@ -227,13 +226,13 @@ def _delete_role(conn: GreenPlumSession, dbuser: str):
     )
 
 
-def update_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO):
+def update_role(conn: GreenPlumSession, rolname: str, dbuser: RoleUpdateDTO) -> None:
     with conn.begin():
         _rename_role(conn, rolname, dbuser)
         _alter_role(conn, rolname, dbuser)
 
 
-def ensure_role(conn: GreenPlumSession, dbuser: RoleCreateDTO):
+def ensure_role(conn: GreenPlumSession, dbuser: RoleCreateDTO) -> None:
     with conn.begin():
         _create_role(conn, dbuser)
 
@@ -274,10 +273,10 @@ def _drop_role_second_var_v2(conn: GreenPlumSession, dbuser: str) -> bool:
 
 
 def _install_dblink_if_allow(conn: GreenPlumSession, _dbuser: str) -> bool:
-    try:
-        if not settings.INSTALL_DBLINK:
-            return
+    if not settings.INSTALL_DBLINK:
+        return False
 
+    try:
         sql_command = """
             CREATE EXTENSION IF NOT EXISTS dblink
         """
@@ -288,7 +287,7 @@ def _install_dblink_if_allow(conn: GreenPlumSession, _dbuser: str) -> bool:
         return False
 
 
-def drop_role(conn: GreenPlumSession, dbuser: str):
+def drop_role(conn: GreenPlumSession, dbuser: str) -> None:
     drop_vars = (
         partial(x, conn, dbuser)
         for x in (

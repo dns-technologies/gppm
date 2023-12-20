@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy import cast, select, ARRAY, Text, func
+from sqlalchemy.sql import Select
 
 from app.db.orm_types import GreenPlumSession
-
 from . import TableAclDTO
 from app.use_case.exceptions import NoSuchObject
 from app.read_model import *
@@ -27,7 +27,7 @@ _pg_class_stmt = (
 )
 
 
-def _table_stmt(schema: Optional[str] = None, table_name: Optional[str] = None):
+def _table_stmt(schema: Optional[str] = None, table_name: Optional[str] = None) -> Select:
     stmt = _filter_pg_class_stmt(
         _pg_class_stmt, schema=schema, rel_name=table_name)
     return stmt.where(pg_class.c.relkind.in_([
@@ -39,7 +39,7 @@ def _table_stmt(schema: Optional[str] = None, table_name: Optional[str] = None):
     ]))
 
 
-def _filter_pg_class_stmt(stmt, schema: Optional[str] = None, rel_name: Optional[str] = None):
+def _filter_pg_class_stmt(stmt, schema: Optional[str] = None, rel_name: Optional[str] = None) -> Select:
     if schema is not None:
         stmt = stmt.where(pg_namespace.c.nspname == schema)
 

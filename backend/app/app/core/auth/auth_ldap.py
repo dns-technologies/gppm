@@ -1,12 +1,13 @@
 from typing import Dict, List, Optional
-from app.models.user import User
 from sqlalchemy.orm import Session
-from .auth_base import BaseAuth
 import ldap
+
+from app.models.user import User
+from .auth_base import BaseAuth
 
 
 class LdapAuth(BaseAuth):
-    def __init__(self, url: str, base_dn: str, search_filter: str, retrieve_attrs: List[str]):
+    def __init__(self, url: str, base_dn: str, search_filter: str, retrieve_attrs: List[str]) -> None:
         super().__init__()
         self.conn = ldap.initialize(url)
         self.base_dn = base_dn

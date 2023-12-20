@@ -88,7 +88,6 @@ POSTGRES_PORT | ENV | Порт PostgreSQL. Обычно это 5432.
 POSTGRES_USER | ENV | Роль для подключения к `POSTGRES_SERVER`.
 POSTGRES_PASSWORD | ENV | Пароль `POSTGRES_USER` для подключения к `POSTGRES_SERVER`.
 POSTGRES_DB | ENV | База на `POSTGRES_SERVER`, в которой должны быть права на выполнение DDL и DML команд от роли `POSTGRES_USER`.
-LOGGING_DEBUG | ENV | Флаг логирования сообщений об ошибках. Сообщения содержат текст ошибки и HTTP-код ответа. 
 INSTALL_DBLINK | ENV | Установка `dblink` при его отсутствии. Позволяет использовать более сложный алгоритм удаления ролей.
 GRANT_WITH_ADMIN_OPTION | ENV | Объединение ролей с `WITH ADMIN OPTION`. Роль сможет добавлять членов в группу, которой принадлежит.
 DEEP_REVOKE | ENV | Выполнять `REVOKE` от всех ролей, которые выдали права.
@@ -124,19 +123,32 @@ cd frontend
 docker build \
     -t gppm-frontend \
     -f frontend.dockerfile \
-    --build-arg FRONTEND_DOMAIN=gppm.com \
+    --build-arg FRONTEND_DOMAIN=http://gppm.com \
     --no-cache .
 ```
 
 ## Автономный образ
 
-Возможно собрать образ, который будет содержать все компоненты. Достаточно выполнить:
+Возможно собрать образ, который будет содержать все компоненты.
+
+Достаточно выполнить:
 
 ```
 docker build \
     -t gppm-standalone \
     -f build/standalone.dockerfile \
     --no-cache .
+```
+
+Процесс запуска:
+
+```
+docker run -it --rm \
+    -p 80:80 -p 8080:8080 \
+    -v gppm-data:/var/lib/postgresql/9.6 \
+    -e SECRET_KEY=HF2IxPeglDZdEVp4702u4mxOpoNcInXnZj80d1Ab \
+    -e ENCODING_KEY=SCW2TcT1ko4RaTEXFDXmSsGPIRey0kvNvJz8v0zO73k= \
+    gppm-standalone
 ```
 
 ## Разработка

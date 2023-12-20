@@ -2,10 +2,11 @@ FROM python:3.9-slim-buster
 
 LABEL maintainer="Ostap Konstantinov <konstantinov.ov@dns-shop.ru>"
 
-RUN apt-get update && \
-    apt-get install --no-install-recommends --yes \
-        gcc curl procps libsasl2-dev libldap2-dev && \
-    apt-get clean
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    gcc curl procps libsasl2-dev libldap2-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
@@ -26,7 +27,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=100 \
-  POETRY_VERSION=1.1.14 \
+  POETRY_VERSION=1.1.15 \
   POETRY_VIRTUALENVS_CREATE=false \
   PYTHONPATH=/app
 

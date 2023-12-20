@@ -1,5 +1,4 @@
 from typing import Iterator, List, Optional
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -30,7 +29,7 @@ def get_auth() -> BaseAuth:
     return get_auth_class(settings.AUTH_PROVIDER)
 
 
-def public_app_info():
+def public_app_info() -> schemas.MsgPublicAppInfo:
     return schemas.MsgPublicAppInfo(
         api_version=settings.API_V1_STR,
         project_name=settings.PROJECT_NAME,

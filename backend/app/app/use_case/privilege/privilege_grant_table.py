@@ -1,10 +1,9 @@
 from typing import Iterator, List, Optional
 from sqlalchemy import exc
+
 from app.core.config import settings
 from app.use_case.exceptions import DoneWithErrors
-
 from app.db.orm_types import GreenPlumSession
-
 from . import GrantTablePrivelegesDTO, GrantTablesInSchemaDTO, GrantTableDTO, GrantTablesInDatabaseDTO
 from app.read_model import *
 from app.use_case.acl import get_table_acl
@@ -52,7 +51,7 @@ def _calc_revoke_options(privileges: GrantTablePrivelegesDTO, *, all: bool = Fal
     )
 
 
-def _grant_tables_in_database_permissions(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO):
+def _grant_tables_in_database_permissions(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO) -> None:
     '''
     GRANT { { SELECT | INSERT | UPDATE | DELETE | TRUNCATE | REFERENCES | TRIGGER }
         [, ...] | ALL [ PRIVILEGES ] }
@@ -98,7 +97,7 @@ def _grant_tables_in_database_permissions(conn: GreenPlumSession, payload: Grant
     )
 
 
-def _grant_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO):
+def _grant_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO) -> None:
     '''
     GRANT { { SELECT | INSERT | UPDATE | DELETE | TRUNCATE | REFERENCES | TRIGGER }
         [, ...] | ALL [ PRIVILEGES ] }
@@ -132,7 +131,7 @@ def _grant_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantTa
     )
 
 
-def _grant_tables_in_schema_permissions_default(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO):
+def _grant_tables_in_schema_permissions_default(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO) -> None:
     '''
     ALTER DEFAULT PRIVILEGES
         [ FOR { ROLE | USER } target_role [, ...] ]
@@ -172,7 +171,7 @@ def _grant_tables_in_schema_permissions_default(conn: GreenPlumSession, payload:
     )
 
 
-def _grant_table_permissions(conn: GreenPlumSession, payload: GrantTableDTO):
+def _grant_table_permissions(conn: GreenPlumSession, payload: GrantTableDTO) -> None:
     '''
     GRANT { { SELECT | INSERT | UPDATE | REFERENCES } ( column_name [, ...] )
         [, ...] | ALL [ PRIVILEGES ] ( column_name [, ...] ) }
@@ -207,7 +206,7 @@ def _grant_table_permissions(conn: GreenPlumSession, payload: GrantTableDTO):
     )
 
 
-def _revoke_tables_in_database_permissions(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO):
+def _revoke_tables_in_database_permissions(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { SELECT | INSERT | UPDATE | DELETE | TRUNCATE | REFERENCES | TRIGGER }
@@ -254,7 +253,7 @@ def _revoke_tables_in_database_permissions(conn: GreenPlumSession, payload: Gran
     )
 
 
-def _revoke_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO):
+def _revoke_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { SELECT | INSERT | UPDATE | DELETE | TRUNCATE | REFERENCES | TRIGGER }
@@ -289,7 +288,7 @@ def _revoke_tables_in_schema_permissions(conn: GreenPlumSession, payload: GrantT
     )
 
 
-def _revoke_tables_in_schema_permissions_default(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO):
+def _revoke_tables_in_schema_permissions_default(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO) -> None:
     '''
     ALTER DEFAULT PRIVILEGES
         [ FOR { ROLE | USER } target_role [, ...] ]
@@ -330,7 +329,7 @@ def _revoke_tables_in_schema_permissions_default(conn: GreenPlumSession, payload
     )
 
 
-def _revoke_table_permissions(conn: GreenPlumSession, payload: GrantTableDTO, grantor: Optional[str] = None):
+def _revoke_table_permissions(conn: GreenPlumSession, payload: GrantTableDTO, grantor: Optional[str] = None) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { SELECT | INSERT | UPDATE | REFERENCES } ( column_name [, ...] )
@@ -374,13 +373,13 @@ def _grantors_of_table_acl(conn: GreenPlumSession, payload: GrantTableDTO) -> It
             yield privilege.grantor
 
 
-def grant_all_tables_in_database(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO):
+def grant_all_tables_in_database(conn: GreenPlumSession, payload: GrantTablesInDatabaseDTO) -> None:
     with conn.begin():
         _revoke_tables_in_database_permissions(conn, payload)
         _grant_tables_in_database_permissions(conn, payload)
 
 
-def grant_all_tables_in_schema(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO):
+def grant_all_tables_in_schema(conn: GreenPlumSession, payload: GrantTablesInSchemaDTO) -> None:
     with conn.begin():
         _revoke_tables_in_schema_permissions(conn, payload)
         _grant_tables_in_schema_permissions(conn, payload)
@@ -390,7 +389,7 @@ def grant_all_tables_in_schema(conn: GreenPlumSession, payload: GrantTablesInSch
         _grant_tables_in_schema_permissions_default(conn, payload)
 
 
-def grant_on_table(conn: GreenPlumSession, payload: GrantTableDTO):
+def grant_on_table(conn: GreenPlumSession, payload: GrantTableDTO) -> None:
     with conn.begin():
         _revoke_table_permissions(conn, payload)
 

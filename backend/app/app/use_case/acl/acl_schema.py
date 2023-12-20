@@ -1,7 +1,7 @@
+from typing import List
 from sqlalchemy import cast, select, ARRAY, Text, and_, not_
 
 from app.db.orm_types import GreenPlumSession
-
 from . import SchemaAclDTO
 from app.use_case.exceptions import NoSuchObject
 from app.read_model import *
@@ -30,7 +30,7 @@ _pg_schema_stmt = (
 )
 
 
-def get_all_schema_acls(conn: GreenPlumSession):
+def get_all_schema_acls(conn: GreenPlumSession) -> List[SchemaAclDTO]:
     with conn.begin():
         rows = conn.execute(_pg_schema_stmt)
         return [SchemaAclDTO(**row) for row in rows]

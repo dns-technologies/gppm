@@ -9,11 +9,12 @@
 ###########
 FROM python:3.9-slim-buster as standalone
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         gcc curl libsasl2-dev libldap2-dev \
-        gnupg2 ca-certificates wget procps psmisc gosu && \
-    apt-get clean
+        gnupg2 ca-certificates wget procps psmisc gosu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY backend/start-reload.sh /start-reload.sh
@@ -25,7 +26,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VERSION=1.1.14 \
+    POETRY_VERSION=1.1.15 \
     POETRY_VIRTUALENVS_CREATE=false \
     PYTHONPATH=/app
 RUN pip install "poetry==$POETRY_VERSION"
@@ -48,7 +49,7 @@ COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/. .
 ENV VUE_APP_NAME="GreenPlum Permission Manager Preview" \
-    VUE_APP_DOMAIN=localhost:8080
+    VUE_APP_DOMAIN=http://localhost:8080
 RUN npm run build
 
 ############
@@ -57,11 +58,11 @@ RUN npm run build
 FROM standalone as standalone-nginx
 ENV NGINX_VERSION=1.20.2-1~buster
 RUN wget --quiet -O - http://nginx.org/keys/nginx_signing.key | apt-key add - \
-      && echo "deb http://nginx.org/packages/debian buster nginx" | tee /etc/apt/sources.list.d/nginx.list
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        nginx=$NGINX_VERSION && \
-    apt-get clean
+    && echo "deb http://nginx.org/packages/debian buster nginx" | tee /etc/apt/sources.list.d/nginx.list
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nginx=$NGINX_VERSION \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist/ /usr/share/nginx/html
 COPY build/nginx.conf /etc/nginx/nginx.conf
@@ -87,19 +88,23 @@ ENV POSTGRES_SERVER=localhost \
     POSTGRES_DB=app
 ENV PATH="${PATH}:${PG_BINDIR}"
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-      && echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" | tee /etc/apt/sources.list.d/postgresql-pgdg.list
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" | tee /etc/apt/sources.list.d/postgresql-pgdg.list
 RUN apt-get update \
-      && apt-get install -y --no-install-recommends \
-           postgresql-$PG_VERSION \
-           postgresql-client-$PG_VERSION \
-           postgresql-contrib-$PG_VERSION \
-      && apt-get clean
-RUN rm -rf "$PG_BASE" && mkdir -p "$PG_BASE" && chown -R postgres:postgres "$PG_BASE" \
-      && mkdir -p /var/run/postgresql/$PG_VERSION-main.pg_stat_tmp \
-      && chown -R postgres:postgres /var/run/postgresql && chmod g+s /var/run/postgresql
+    && apt-get install -y --no-install-recommends \
+        postgresql-$PG_VERSION \
+        postgresql-client-$PG_VERSION \
+        postgresql-contrib-$PG_VERSION \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+RUN rm -rf "$PG_BASE" \
+    && mkdir -p "$PG_BASE" \
+    && chown -R postgres:postgres "$PG_BASE" \
+    && mkdir -p /var/run/postgresql/$PG_VERSION-main.pg_stat_tmp \
+    && chown -R postgres:postgres /var/run/postgresql \
+    && chmod g+s /var/run/postgresql
 RUN echo "host all  all    0.0.0.0/0  md5" >> $PG_CONFIG_DIR/pg_hba.conf \
-      && echo "host all  all    ::/0  md5" >> $PG_CONFIG_DIR/pg_hba.conf \
-      && echo "listen_addresses='*'" >> $PG_CONFIG_FILE
+    && echo "host all  all    ::/0  md5" >> $PG_CONFIG_DIR/pg_hba.conf \
+    && echo "listen_addresses='*'" >> $PG_CONFIG_FILE
 EXPOSE 5432
 
 ############################

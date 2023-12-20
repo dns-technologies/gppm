@@ -1,5 +1,6 @@
 from typing import Any
 from fastapi import APIRouter, Depends
+
 import app.schemas as schemas
 from app.api import deps
 

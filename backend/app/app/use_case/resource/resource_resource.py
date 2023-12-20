@@ -3,7 +3,6 @@ from sqlalchemy import select, func, join, exc
 from sqlalchemy.orm import Session
 
 from app.db.orm_types import GreenPlumConnection, GreenPlumSession
-
 from . import ResourceGroupDTO, ResourceGroupCreateDTO, ResourceGroupUpdateDTO, ResourceGroupAvailableLimitsDTO
 from app.use_case.exceptions import DoneWithErrors
 from app.read_model import *
@@ -108,7 +107,7 @@ def _calc_alter_options(resource_group: ResourceGroupUpdateDTO) -> List[str]:
     return options
 
 
-def _create_resource_group(conn: GreenPlumSession, rsgroup: ResourceGroupCreateDTO):
+def _create_resource_group(conn: GreenPlumSession, rsgroup: ResourceGroupCreateDTO) -> None:
     '''
     CREATE RESOURCE GROUP name WITH (group_attribute=value [, ... ])
     where group_attribute is:
@@ -133,7 +132,9 @@ def _create_resource_group(conn: GreenPlumSession, rsgroup: ResourceGroupCreateD
     conn.execute(sql_command)
 
 
-def _alter_resource_group_members(conn: GreenPlumSession, rolnames: List[str], rsgname: Optional[str] = None):
+def _alter_resource_group_members(
+    conn: GreenPlumSession, rolnames: List[str], rsgname: Optional[str] = None,
+) -> None:
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT('ALTER ROLE "%s" RESOURCE GROUP %s', :rolname, :rsgname);
@@ -157,7 +158,9 @@ def _alter_resource_group_members(conn: GreenPlumSession, rolnames: List[str], r
         raise DoneWithErrors(rsgname)
 
 
-def _alter_resource_group(conn: GreenPlumSession, rsgname: str, rsgroup: ResourceGroupUpdateDTO):
+def _alter_resource_group(
+    conn: GreenPlumSession, rsgname: str, rsgroup: ResourceGroupUpdateDTO,
+) -> None:
     '''
     ALTER RESOURCE GROUP name SET group_attribute value
     where group_attribute is one of:
@@ -193,7 +196,7 @@ def _alter_resource_group(conn: GreenPlumSession, rsgname: str, rsgroup: Resourc
         raise DoneWithErrors(rsgname)
 
 
-def _remove_all_members_from_resource_group(conn: GreenPlumSession, rsgname: str):
+def _remove_all_members_from_resource_group(conn: GreenPlumSession, rsgname: str) -> None:
     sql_command = """
         DO $$
         DECLARE
@@ -220,7 +223,7 @@ def _remove_all_members_from_resource_group(conn: GreenPlumSession, rsgname: str
     )
 
 
-def _terminate_all_queries_with_resource_group(conn: GreenPlumSession, rsgname: str):
+def _terminate_all_queries_with_resource_group(conn: GreenPlumSession, rsgname: str) -> None:
     # For fix RG with name: unknown
     sql_command = """
         SELECT pg_terminate_backend(pid)
@@ -244,7 +247,7 @@ def _terminate_all_queries_with_resource_group(conn: GreenPlumSession, rsgname: 
     )
 
 
-def _delete_resource_group(conn: GreenPlumSession, rsgname: str):
+def _delete_resource_group(conn: GreenPlumSession, rsgname: str) -> None:
     sql_command = f"""
         DROP RESOURCE GROUP "{rsgname}"
     """
@@ -253,7 +256,9 @@ def _delete_resource_group(conn: GreenPlumSession, rsgname: str):
 
 
 def _get_all_members_of_resource_group(conn: GreenPlumSession, rsname: str) -> List[str]:
-    stmt = _gp_members_of_resource_group_stmt.where(gp_resgroup_config.c.groupname == rsname)
+    stmt = _gp_members_of_resource_group_stmt.where(
+        gp_resgroup_config.c.groupname == rsname
+    )
     rows = conn.execute(stmt)
 
     members = []
@@ -265,8 +270,8 @@ def _get_all_members_of_resource_group(conn: GreenPlumSession, rsname: str) -> L
 
 def _list_of_members_del_and_add(
     conn: GreenPlumSession,
-    rsname: str, members:
-    List[str]
+    rsname: str,
+    members: List[str],
 ) -> Tuple[List[str], List[str]]:
     members_in_db = _get_all_members_of_resource_group(conn, rsname)
     to_remove = set(members_in_db) - set(members)
@@ -280,7 +285,7 @@ def get_all_resource_groups(conn: GreenPlumSession) -> List[ResourceGroupDTO]:
         return [ResourceGroupDTO(**row) for row in rows]
 
 
-def drop_resource_group(conn: GreenPlumConnection, rsname: str):
+def drop_resource_group(conn: GreenPlumConnection, rsname: str) -> None:
     conn.execution_options(isolation_level="AUTOCOMMIT")
     with Session(conn) as session:
         _remove_all_members_from_resource_group(session, rsname)
@@ -288,14 +293,14 @@ def drop_resource_group(conn: GreenPlumConnection, rsname: str):
         _delete_resource_group(session, rsname)
 
 
-def ensure_resource_group(conn: GreenPlumConnection, rsgroup: ResourceGroupCreateDTO):
+def ensure_resource_group(conn: GreenPlumConnection, rsgroup: ResourceGroupCreateDTO) -> None:
     conn.execution_options(isolation_level="AUTOCOMMIT")
     with Session(conn) as session:
         _create_resource_group(session, rsgroup)
         _alter_resource_group_members(session, rsgroup.group_members, rsgroup.name)
 
 
-def update_resource_group(conn: GreenPlumConnection, rsname: str, rsgroup: ResourceGroupUpdateDTO):
+def update_resource_group(conn: GreenPlumConnection, rsname: str, rsgroup: ResourceGroupUpdateDTO) -> None:
     conn.execution_options(isolation_level="AUTOCOMMIT")
     with Session(conn) as session:
         removed, appended = _list_of_members_del_and_add(

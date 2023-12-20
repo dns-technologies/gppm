@@ -61,7 +61,6 @@ backend:
       AUTH_PROVIDER: local
       AUTH_OPEN_REGISTRATION: False
       AUTH_REFRESH_PASSWORD: False
-      LOGGING_DEBUG: False
       INSTALL_DBLINK: True
       GRANT_WITH_ADMIN_OPTION: False
       DEEP_REVOKE: True

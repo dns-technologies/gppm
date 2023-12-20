@@ -7,20 +7,32 @@
       :loading="lightLoading > 0 && loading <= 0"
     >
       <v-row
-        v-if="loading > 0"
+        v-if="loading > 0 || graphIsTooBig"
         class="fill-height ma-0"
         align-content="center"
         justify="center"
       >
-        <v-col class="text-subtitle-1 text-center" cols="12"> Building graph... </v-col>
-        <v-col cols="6">
-          <v-progress-linear
-            color="deep-purple accent-4"
-            indeterminate
-            rounded
-            height="6"
-          ></v-progress-linear>
-        </v-col>
+        <template v-if="loading > 0">
+          <v-col class="text-subtitle-1 text-center" cols="12">
+            Building graph...
+          </v-col>
+          <v-col cols="6">
+            <v-progress-linear
+              color="deep-purple accent-4"
+              indeterminate
+              rounded
+              height="6"
+            ></v-progress-linear>
+          </v-col>
+        </template>
+        <template v-else>
+          <v-col class="text-subtitle-1 text-center" cols="12">
+            <div>
+              <strong>Graph</strong> in which {{ countOfRawNodes }} nodes and
+              {{ countOfRawEdges }} edges <strong>is too big</strong> for visualize :(
+            </div>
+          </v-col>
+        </template>
       </v-row>
 
       <v-row v-else class="ma-0">
@@ -130,7 +142,11 @@ import { IVisNode, IVisEdge } from "@/interfaces/vue-models";
 import { mainStore, roleStore } from "@/store";
 import ActionNodeSelected from "./actions/NodeSelected.vue";
 import ActionEdgeSelected from "./actions/EdgeSelected.vue";
-import { IRolesGraphEdge, IRolesGraphNode, IRoleProfile } from "@/interfaces/greenplum";
+import {
+  IRolesGraphEdge,
+  IRolesGraphNode,
+  IRoleProfile,
+} from "@/interfaces/greenplum";
 import _ from "lodash";
 
 @Component({
@@ -143,7 +159,11 @@ export default class RoleGroups extends Vue {
   @Ref()
   network!: any;
 
-  default_node_color = {
+  maxAvailableNodes: int = 500;
+  maxAvailableEdges: int = 600;
+  graphIsTooBig: boolean = false;
+
+  defaultNodeColor = {
     border: "#2B7CE9",
     background: "#D2E5FF",
     highlight: {
@@ -163,7 +183,7 @@ export default class RoleGroups extends Vue {
       selectConnectedEdges: false,
     },
     nodes: {
-      color: this.default_node_color,
+      color: this.defaultNodeColor,
     },
     physics: {
       solver: "forceAtlas2Based",
@@ -200,6 +220,14 @@ export default class RoleGroups extends Vue {
     return mainStore.hasAdminAccess;
   }
 
+  get countOfRawNodes(): number {
+    return roleStore.GraphNodes.length;
+  }
+
+  get countOfRawEdges(): number {
+    return roleStore.GraphEdges.length;
+  }
+
   getVisNodes(graphNodes: IRolesGraphNode[], roles: IRoleProfile[]): IVisNode[] {
     return _.map(graphNodes, (node) => {
       return {
@@ -233,7 +261,7 @@ export default class RoleGroups extends Vue {
     const node = this.getRoleByOid(oid, storage);
 
     if (!node || node.rolcanlogin) {
-      return this.default_node_color;
+      return this.defaultNodeColor;
     }
 
     return {
@@ -276,9 +304,14 @@ export default class RoleGroups extends Vue {
     try {
       nodes = this.getVisNodes(roleStore.GraphNodes, roleStore.roles);
       edges = this.getVisEdges(roleStore.GraphEdges, roleStore.roles);
+
+      // Если нод или ребер слишком много, — не показываем
+      this.graphIsTooBig =
+        nodes.length > this.maxAvailableNodes ||
+        edges.length > this.maxAvailableEdges;
     } finally {
-      this.nodes = nodes;
-      this.edges = edges;
+      this.nodes = this.graphIsTooBig ? [] : nodes;
+      this.edges = this.graphIsTooBig ? [] : edges;
       this.selectGraphElement();
     }
   }

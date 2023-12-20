@@ -26,8 +26,14 @@
             clear-icon="mdi-close-circle"
             class="mb-3"
           ></v-text-field>
-          <v-list height="650" class="overflow-auto">
-            <template v-for="item in items">
+
+          <v-virtual-scroll
+            :key="timestamp"
+            :items="items"
+            height="650"
+            item-height="56"
+          >
+            <template v-slot:default="{ item }">
               <v-list-item :key="item.name" @click="showPermissions(item)">
                 <v-list-item-avatar>
                   <v-avatar :color="item.color" class="white--text">
@@ -49,7 +55,7 @@
                 </v-list-item-action>
               </v-list-item>
             </template>
-          </v-list>
+          </v-virtual-scroll>
         </v-col>
 
         <v-divider vertical class="hidden-sm-and-down"></v-divider>
@@ -92,6 +98,7 @@ import _ from "lodash";
 export default class AclDatabases extends Vue {
   selectedItem: IVueAclCommon | null = null;
 
+  timestamp: number = 0;
   search: string = "";
   loading: number = 0;
   databaseStore: IAclDatabase[] = [];
@@ -177,6 +184,7 @@ export default class AclDatabases extends Vue {
   }
 
   async activated() {
+    this.timestamp = Date.now();
     await this.refresh();
   }
 }

@@ -1,5 +1,6 @@
 from typing import Any, List
 from fastapi import APIRouter, Depends
+
 from app.db.orm_types import GreenPlumSession
 import app.use_case.acl as acl
 from app.api.deps import get_current_active_user, get_greenplum_session

@@ -1,14 +1,17 @@
 from typing import Dict, Optional
-from app.models.user import User
 from sqlalchemy.orm import Session
+from abc import ABC, abstractmethod
+
+from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.config import settings
 import app.crud as crud
 
 
-class BaseAuth:
+class BaseAuth(ABC):
+    @abstractmethod
     def auth(self, email: str, password: str, *, db: Session) -> Optional[User]:
-        return None
+        ...
 
     def update_db(self, payload: Dict, *, db: Session) -> Optional[User]:
         email = payload.get("email")

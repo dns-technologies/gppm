@@ -2,7 +2,6 @@ from typing import List
 from sqlalchemy import select, func
 
 from app.db.orm_types import GreenPlumSession
-
 from . import MemberDTO, RoleGroupDTO, RoleGroupEdgeDTO, RoleGroupNodeDTO
 from app.core.config import settings
 from app.read_model import *
@@ -41,7 +40,9 @@ _pg_role_stmt = (
 )
 
 
-def _revoke_member_from_role(conn: GreenPlumSession, rolname: str, member: str, admin_option: bool = False):
+def _revoke_member_from_role(
+    conn: GreenPlumSession, rolname: str, member: str, admin_option: bool = False
+) -> None:
     '''
     REVOKE [ ADMIN OPTION FOR ]
         role_name [, ...] FROM role_name [, ...]
@@ -66,7 +67,9 @@ def _revoke_member_from_role(conn: GreenPlumSession, rolname: str, member: str, 
     )
 
 
-def _grant_member_to_role(conn: GreenPlumSession, rolname: str, member: str, admin_option: bool = False):
+def _grant_member_to_role(
+    conn: GreenPlumSession, rolname: str, member: str, admin_option: bool = False
+) -> None:
     '''
     GRANT role_name [, ...] TO role_specification [, ...]
     [ WITH ADMIN OPTION ]
@@ -109,12 +112,12 @@ def get_graph_of_members(conn: GreenPlumSession) -> RoleGroupDTO:
         )
 
 
-def remove_member_from_role(conn: GreenPlumSession, dbuser: str, member: str):
+def remove_member_from_role(conn: GreenPlumSession, dbuser: str, member: str) -> None:
     with conn.begin():
         _revoke_member_from_role(conn, dbuser, member)
 
 
-def append_member_to_role(conn: GreenPlumSession, dbuser: str, member: str):
+def append_member_to_role(conn: GreenPlumSession, dbuser: str, member: str) -> None:
     with conn.begin():
         _grant_member_to_role(
             conn=conn,

@@ -1,14 +1,12 @@
 from typing import Optional
-from app.models.user import User
 from sqlalchemy.orm import Session
+
+from app.models.user import User
 from .auth_base import BaseAuth
 import app.crud as crud
 
 
 class DatabaseAuth(BaseAuth):
-    def __init__(self):
-        super().__init__()
-
     def auth(self, email: str, password: str, *, db: Session) -> Optional[User]:
         user = crud.user.authenticate(
             db, email=email, password=password

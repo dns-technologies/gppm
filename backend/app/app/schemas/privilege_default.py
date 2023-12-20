@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from .privilege_privilege import Privilege
 
+
 class DefaultPermissionsBase(BaseModel):
     pass
 

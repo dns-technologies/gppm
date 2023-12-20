@@ -2,7 +2,6 @@ from typing import List
 from sqlalchemy import cast, select, ARRAY, Text
 
 from app.db.orm_types import GreenPlumSession
-
 from . import DatabaseAclDTO
 from app.use_case.exceptions import NoSuchObject
 from app.read_model import *

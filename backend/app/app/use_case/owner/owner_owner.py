@@ -5,7 +5,7 @@ from app.use_case.exceptions import TypeNotImplemented
 from app.read_model import *
 
 
-def _change_database_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
+def _change_database_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO) -> None:
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT('ALTER DATABASE "%s" OWNER TO "%s"', :database_name, :new_owner);
@@ -21,7 +21,7 @@ def _change_database_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
     )
 
 
-def _change_schema_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
+def _change_schema_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO) -> None:
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT('ALTER SCHEMA "%s" OWNER TO "%s"', :schema_name, :new_owner);
@@ -37,7 +37,7 @@ def _change_schema_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
     )
 
 
-def _change_table_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
+def _change_table_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO) -> None:
     sql_command = """
         DO $$ BEGIN
             EXECUTE FORMAT('ALTER TABLE "%s"."%s" OWNER TO "%s"', :schema_name, :table_name, :new_owner);
@@ -54,7 +54,7 @@ def _change_table_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
     )
 
 
-def update_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
+def update_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO) -> None:
     like_switch = {
         "database": _change_database_owner,
         "schema": _change_schema_owner,
@@ -63,7 +63,9 @@ def update_owner(conn: GreenPlumSession, payload: UpdateOwnerDTO):
 
     callback_update_owner = like_switch.get(payload.type_of_entity)
     if callback_update_owner is None:
-        raise TypeNotImplemented("It is not possible to change the owner of this entity type")
+        raise TypeNotImplemented(
+            "It is not possible to change the owner of this entity type"
+        )
 
     with conn.begin():
         callback_update_owner(conn, payload)

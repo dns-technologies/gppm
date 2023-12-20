@@ -1,3 +1,4 @@
+# flake8: noqa
 from .privilege_dto import *
 from .privilege_privilege import *
 from .privilege_grant_database import *

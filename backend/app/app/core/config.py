@@ -17,10 +17,8 @@ class Settings(BaseSettings):
             return v.encode()
         return Fernet.generate_key()
 
-    # 60 minutes * 24 hours * 8 days = 8 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
-    # e.g: '["http://localhost", "http://localhost:80"]'
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 * 2
+
     BACKEND_CORS_ORIGINS: Union[str, List[AnyHttpUrl]] = Field(...)
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -62,7 +60,6 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
-    LOGGING_DEBUG: bool = False
     INSTALL_DBLINK: bool = True
     GRANT_WITH_ADMIN_OPTION: bool = False
     DEEP_REVOKE: bool = True

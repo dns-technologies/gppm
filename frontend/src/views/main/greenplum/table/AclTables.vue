@@ -80,8 +80,13 @@
             class="mb-3"
           ></v-text-field>
 
-          <v-list height="650" class="overflow-auto">
-            <template v-for="item in items">
+          <v-virtual-scroll
+            :key="timestamp"
+            :items="items"
+            height="650"
+            item-height="56"
+          >
+            <template v-slot:default="{ item }">
               <v-list-item :key="item.name" @click="showPermissions(item)">
                 <v-list-item-avatar>
                   <v-avatar :color="item.color" class="white--text">
@@ -94,7 +99,7 @@
                 </v-list-item-content>
               </v-list-item>
             </template>
-          </v-list>
+          </v-virtual-scroll>
         </v-col>
 
         <v-divider vertical class="hidden-sm-and-down"></v-divider>
@@ -142,6 +147,7 @@ export default class AclTables extends Vue {
   connectionProp?: string;
 
   loading: number = 0;
+  timestamp: number = 0;
   selectedItem: IVueAclCommon | null = null;
   search: string = "";
   selectedDatabase: any = null;
@@ -292,9 +298,9 @@ export default class AclTables extends Vue {
   }
 
   async activated() {
+    this.timestamp = Date.now();
     this.connectionProp = this.connection;
     await this.refresh();
   }
 }
 </script>
-

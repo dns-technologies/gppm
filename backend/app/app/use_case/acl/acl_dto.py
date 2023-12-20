@@ -14,7 +14,7 @@ class DatabaseAclDTO(DTO):
     owner: str
     acl: List[str]
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.acl is None:
             self.acl = [
                 f'"{self.owner}"=CTc/"{self.owner}"',
@@ -29,7 +29,7 @@ class SchemaAclDTO(DTO):
     owner: str
     acl: List[str]
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.acl is None:
             self.acl = [f'"{self.owner}"=UC/"{self.owner}"']
 
@@ -42,6 +42,6 @@ class TableAclDTO(DTO):
     acl: List[str]
     schema: str
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.acl is None:
             self.acl = [f'"{self.owner}"=arwdDxt/"{self.owner}"']

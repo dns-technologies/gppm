@@ -1,10 +1,9 @@
 from typing import Iterator, List, Optional
 from sqlalchemy import exc
+
 from app.core.config import settings
 from app.use_case.exceptions import DoneWithErrors
-
 from app.db.orm_types import GreenPlumSession
-
 from . import GrantDatabaseDTO, GrantDatabasePrivelegesDTO
 from app.read_model import *
 from app.use_case.acl import get_database_acl
@@ -44,7 +43,7 @@ def _calc_revoke_options(privileges: GrantDatabasePrivelegesDTO, *, all: bool = 
     )
 
 
-def _grant_database_permissions(conn: GreenPlumSession, payload: GrantDatabaseDTO):
+def _grant_database_permissions(conn: GreenPlumSession, payload: GrantDatabaseDTO) -> None:
     '''
     GRANT { { CREATE | CONNECT | TEMPORARY | TEMP } [, ...] | ALL [ PRIVILEGES ] }
         ON DATABASE database_name [, ...]
@@ -77,7 +76,7 @@ def _grant_database_permissions(conn: GreenPlumSession, payload: GrantDatabaseDT
     )
 
 
-def _revoke_database_permissions(conn: GreenPlumSession, payload: GrantDatabaseDTO, grantor: Optional[str] = None):
+def _revoke_database_permissions(conn: GreenPlumSession, payload: GrantDatabaseDTO, grantor: Optional[str] = None) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { CREATE | CONNECT | TEMPORARY | TEMP } [, ...] | ALL [ PRIVILEGES ] }
@@ -119,7 +118,7 @@ def _grantors_of_database_acl(conn: GreenPlumSession, payload: GrantDatabaseDTO)
             yield privilege.grantor
 
 
-def grant_on_database(conn: GreenPlumSession, payload: GrantDatabaseDTO):
+def grant_on_database(conn: GreenPlumSession, payload: GrantDatabaseDTO) -> None:
     with conn.begin():
         _revoke_database_permissions(conn, payload)
 

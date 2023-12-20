@@ -16,11 +16,7 @@ class Access(Base):
     database = Column(String, index=True)
     db_schema = Column(String, index=True)
     is_active = Column(Boolean, default=True)
-    user_id = Column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True
-    )
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=True)
     user = relationship("User", back_populates="accesses")
-    context_id = Column(
-        Integer, ForeignKey("context.id", ondelete="CASCADE"), nullable=True
-    )
+    context_id = Column(Integer, ForeignKey("context.id", ondelete="CASCADE"), nullable=True)
     context = relationship("Context", back_populates="accesses")

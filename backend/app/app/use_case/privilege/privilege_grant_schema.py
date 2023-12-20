@@ -1,10 +1,9 @@
 from typing import Iterator, List, Optional
 from sqlalchemy import exc
+
 from app.core.config import settings
 from app.use_case.exceptions import DoneWithErrors
-
 from app.db.orm_types import GreenPlumSession
-
 from . import GrantSchemaDTO, GrantSchemaPrivelegesDTO, GrantSchemasInDatabaseDTO
 from app.read_model import *
 from app.use_case.acl import get_schema_acl
@@ -42,7 +41,7 @@ def _calc_revoke_options(privileges: GrantSchemaPrivelegesDTO, *, all: bool = Fa
     )
 
 
-def _grant_schemas_in_database_permissions(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO):
+def _grant_schemas_in_database_permissions(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO) -> None:
     '''
     GRANT { { CREATE | USAGE } [, ...] | ALL [ PRIVILEGES ] }
         ON SCHEMA schema_name [, ...]
@@ -86,7 +85,7 @@ def _grant_schemas_in_database_permissions(conn: GreenPlumSession, payload: Gran
     )
 
 
-def _grant_schema_permissions(conn: GreenPlumSession, payload: GrantSchemaDTO):
+def _grant_schema_permissions(conn: GreenPlumSession, payload: GrantSchemaDTO) -> None:
     '''
     GRANT { { CREATE | USAGE } [, ...] | ALL [ PRIVILEGES ] }
         ON SCHEMA schema_name [, ...]
@@ -119,7 +118,7 @@ def _grant_schema_permissions(conn: GreenPlumSession, payload: GrantSchemaDTO):
     )
 
 
-def _revoke_schemas_in_database_permissions(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO):
+def _revoke_schemas_in_database_permissions(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { CREATE | USAGE } [, ...] | ALL [ PRIVILEGES ] }
@@ -164,7 +163,7 @@ def _revoke_schemas_in_database_permissions(conn: GreenPlumSession, payload: Gra
     )
 
 
-def _revoke_schema_permissions(conn: GreenPlumSession, payload: GrantSchemaDTO, grantor: Optional[str] = None):
+def _revoke_schema_permissions(conn: GreenPlumSession, payload: GrantSchemaDTO, grantor: Optional[str] = None) -> None:
     '''
     REVOKE [ GRANT OPTION FOR ]
         { { CREATE | USAGE } [, ...] | ALL [ PRIVILEGES ] }
@@ -206,13 +205,13 @@ def _grantors_of_schema_acl(conn: GreenPlumSession, payload: GrantSchemaDTO) -> 
             yield privilege.grantor
 
 
-def grant_all_schemas_in_database(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO):
+def grant_all_schemas_in_database(conn: GreenPlumSession, payload: GrantSchemasInDatabaseDTO) -> None:
     with conn.begin():
         _revoke_schemas_in_database_permissions(conn, payload)
         _grant_schemas_in_database_permissions(conn, payload)
 
 
-def grant_on_schema(conn: GreenPlumSession, payload: GrantSchemaDTO):
+def grant_on_schema(conn: GreenPlumSession, payload: GrantSchemaDTO) -> None:
     with conn.begin():
         _revoke_schema_permissions(conn, payload)
 

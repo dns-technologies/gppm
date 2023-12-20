@@ -2,7 +2,6 @@ from typing import List
 from sqlalchemy import cast, select, ARRAY, Text
 
 from app.db.orm_types import GreenPlumSession
-
 from app.read_model import *
 from .import DefaultPermissonsDTO, RevokeAllDefaultsDTO
 from app.use_case.privilege import parce_acl_rules
@@ -48,7 +47,7 @@ def _entrie2object(entrie: str) -> str:
         raise TypeNotImplemented(entrie)
 
 
-def _revoke_default_permissions(conn: GreenPlumSession, payload: RevokeAllDefaultsDTO):
+def _revoke_default_permissions(conn: GreenPlumSession, payload: RevokeAllDefaultsDTO) -> None:
     '''
     ALTER DEFAULT PRIVILEGES
         [ FOR { ROLE | USER } target_role [, ...] ]
@@ -80,7 +79,7 @@ def _revoke_default_permissions(conn: GreenPlumSession, payload: RevokeAllDefaul
     )
 
 
-def revoke_all_default_permissions(conn: GreenPlumSession, payload: RevokeAllDefaultsDTO):
+def revoke_all_default_permissions(conn: GreenPlumSession, payload: RevokeAllDefaultsDTO) -> None:
     with conn.begin():
         _revoke_default_permissions(conn, payload)
 

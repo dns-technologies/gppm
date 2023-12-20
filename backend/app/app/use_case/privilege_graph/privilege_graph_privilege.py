@@ -1,7 +1,6 @@
 from typing import Dict, Iterator, List, Optional, Set
 
 from app.db.orm_types import GreenPlumSession
-
 from app.use_case.role import RoleDTO, get_graph_of_members, get_all_roles
 from app.use_case.acl import get_database_acl, get_schema_acl, get_table_acl
 from app.use_case.privilege import PrivilegeDTO, compile_one_acl_rule, parce_acl_rules, parce_one_acl_rule
@@ -12,7 +11,7 @@ class RoleSearcher():
     _oid2role: Dict[int, str]
     _role2oid: Dict[str, int]
 
-    def __init__(self, roles: List[RoleDTO]):
+    def __init__(self, roles: List[RoleDTO]) -> None:
         self._oid2role = dict()
         self._role2oid = dict()
 
@@ -30,19 +29,19 @@ class RoleSearcher():
 class Graph:
     _graph: Dict[int, List[int]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._graph = dict()
 
-    def add_vertex(self, v: int):
+    def add_vertex(self, v: int) -> None:
         if not v in self._graph:
             self._graph[v] = []
 
-    def add_edge(self, u: int, v: int):
+    def add_edge(self, u: int, v: int) -> None:
         self.add_vertex(u)
         self.add_vertex(v)
         self._graph[u].append(v)
 
-    def topological_sort_util(self, v: int, visited: Set[int], stack: List[int]):
+    def topological_sort_util(self, v: int, visited: Set[int], stack: List[int]) -> None:
         visited.add(v)
 
         for n in self._graph[v]:

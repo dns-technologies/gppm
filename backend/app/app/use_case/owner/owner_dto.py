@@ -17,6 +17,6 @@ class UpdateOwnerDTO(DTO):
     table: Optional[str]
 
     @type_of_entity.validator
-    def check(self, attribute, value):
+    def check(self, attribute, value) -> None:
         if value not in ('database', 'schema', 'table'):
             raise ValueError("Field type_of_entity has an invalid value")
